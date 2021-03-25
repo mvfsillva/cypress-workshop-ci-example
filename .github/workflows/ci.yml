@@ -6,7 +6,7 @@ jobs:
     steps:
       - name: Checkout 🛎
         uses: actions/checkout@v2
-    
+
       - name: Cache dependencies 💎
         uses: actions/cache@v2
         with:
@@ -16,8 +16,7 @@ jobs:
           # use key string with "v1" for simple cache invalidation
           # use precise key to avoid cache "snowballing"
           # https://glebbahmutov.com/blog/do-not-let-cypress-cache-snowball/
-          key: dependencies-v1-${{ runner.os }}-${{ hashFiles('**/package-lock.lock') }}
-
+          key: dependencies-v1-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
 
       - name: Install dependencies 📦
         run: npm ci
@@ -28,5 +27,19 @@ jobs:
       - name: Start the app 📤
         run: npm start &
 
+      - name: Wait for URL ⏰
+        run: npx wait-on http://localhost:8080
+
       - name: Run Cypress tests 🧪
         run: npm run cy:run
+
+      - name: Upload any screenshots and videos 📼
+        uses: actions/upload-artifact@v2
+        # make sure to run this step
+        # even if the previous step fails
+        if: always()
+        with:
+          name: test-artifacts
+          path: |
+            cypress/videos
+            cypress/screenshots
